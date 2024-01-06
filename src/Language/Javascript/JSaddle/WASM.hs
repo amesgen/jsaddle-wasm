@@ -8,7 +8,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Internal qualified as BI
 import Data.ByteString.Lazy.Char8 qualified as BLC8
 import Data.ByteString.Unsafe qualified as BU
-import Foreign.Ptr (castPtr)
+import Foreign.Ptr (Ptr)
 import GHC.Wasm.Prim (JSString, JSVal)
 import GHC.Wasm.Prim qualified
 import Language.Javascript.JSaddle.Run (runJavaScript)
@@ -81,15 +81,23 @@ foreign import javascript safe "(new Function('$1','$2','$3',`(()=>{${$1}})()`))
 
 -- Conversion JSString <-> ByteString
 
+foreign import javascript unsafe "$1.length"
+  js_stringLength :: JSString -> IO Int
+
+foreign import javascript unsafe "(new TextEncoder()).encodeInto($1, new Uint8Array(__exports.memory.buffer, $2, $3)).written"
+  js_encodeInto :: JSString -> Ptr a -> Int -> IO Int
+
 jsStringToByteString :: JSString -> IO ByteString
 jsStringToByteString s = do
-  len <- GHC.Wasm.Prim.js_stringLength s
+  len <- js_stringLength s
   -- see https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/encodeInto#buffer_sizing
   -- (could also use another strategy described there)
   let lenMax = len * 3
-  BI.createUptoN lenMax \buf ->
-    GHC.Wasm.Prim.js_encodeInto s (castPtr buf) lenMax
+  BI.createUptoN lenMax \buf -> js_encodeInto s buf lenMax
+
+foreign import javascript unsafe "(new TextDecoder('utf-8', {fatal: true})).decode(new Uint8Array(__exports.memory.buffer, $1, $2))"
+  js_toJSString :: Ptr a -> Int -> IO JSString
 
 byteStringToJSString :: ByteString -> IO JSString
 byteStringToJSString bs =
-  BU.unsafeUseAsCStringLen bs $ uncurry GHC.Wasm.Prim.js_toJSString
+  BU.unsafeUseAsCStringLen bs $ uncurry js_toJSString

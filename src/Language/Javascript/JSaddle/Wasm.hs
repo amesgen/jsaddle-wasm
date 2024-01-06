@@ -2,7 +2,7 @@ module Language.Javascript.JSaddle.Wasm (run) where
 
 import Control.Concurrent.Async qualified as Async
 import Control.Concurrent.STM
-import Control.Exception qualified as E
+import Control.Exception (evaluate)
 import Data.Aeson qualified as A
 import Data.ByteString (ByteString)
 import Data.ByteString.Internal qualified as BI
@@ -26,13 +26,13 @@ run entryPoint = do
   (processResult, _processSyncResult, start) <-
     runJavaScript sendBatch entryPoint
 
-  processResultCallback <- mkPullCallback \s -> logException do
+  processResultCallback <- mkPullCallback \s -> do
     bs <- jsStringToByteString s
     case A.eitherDecodeStrict bs of
       Left e -> fail $ "jsaddle: received invalid JSON: " <> show e
       Right r -> processResult r
 
-  readBatchCallback <- mkPushCallback $ logException do
+  readBatchCallback <- mkPushCallback do
     batch <- atomically $ readTQueue batchQueue
     byteStringToJSString $ BLC8.toStrict $ A.encode batch
 
@@ -44,39 +44,25 @@ run entryPoint = do
               JSaddle.Files.initState,
               "(async () => {",
               "  while (true) {",
-              "    const batch = JSON.parse(await ($3)());",
+              "    const batch = JSON.parse(await readBatch());",
               JSaddle.Files.runBatch
-                (\r -> "($2)(JSON.stringify(" <> r <> "));")
+                (\r -> "processResult(JSON.stringify(" <> r <> "));")
                 -- TODO handle synchronous stuff (see processSyncResult)
                 Nothing,
               "  }",
               "})();"
             ]
-        js_eval s processResultCallback readBatchCallback
+        evaluate =<< js_eval s processResultCallback readBatchCallback
 
   Async.concurrently_ start jsaddleRunner
 
 -- Utilities:
 
--- Logging
-
-foreign import javascript unsafe "console.log($1)" js_log :: JSString -> IO ()
-
-jsLog :: String -> IO ()
-jsLog = js_log . GHC.Wasm.Prim.toJSString
-
-logException :: IO a -> IO a
-logException = E.handle \ex -> do
-  jsLog $ "Haskell exception: " <> show (ex :: E.SomeException)
-  E.throwIO ex
-
--- JS FFI
-
 foreign import javascript "wrapper" mkPullCallback :: (JSString -> IO ()) -> IO JSVal
 
 foreign import javascript "wrapper" mkPushCallback :: IO JSString -> IO JSVal
 
-foreign import javascript safe "(new Function('$1','$2','$3',`(()=>{${$1}})()`))($1, $2, $3)"
+foreign import javascript safe "new Function('processResult','readBatch',`(()=>{${$1}})()`)($2, $3)"
   js_eval :: JSString -> JSVal -> JSVal -> IO ()
 
 -- Conversion JSString <-> ByteString

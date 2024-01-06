@@ -27,7 +27,7 @@ common common
 library
   import: common
   exposed-modules:
-    Language.Javascript.JSaddle.WASM
+    Language.Javascript.JSaddle.Wasm
   build-depends:
     , aeson
     , async

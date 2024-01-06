@@ -1,4 +1,4 @@
-module Language.Javascript.JSaddle.WASM (run) where
+module Language.Javascript.JSaddle.Wasm (run) where
 
 import Control.Concurrent.Async qualified as Async
 import Control.Concurrent.STM

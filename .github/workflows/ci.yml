@@ -1,0 +1,33 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+jobs:
+  ormolu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/run-ormolu@v15
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v22
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.ghc-wasm/.cabal/store
+          key: wasm-${{ github.run_id }}
+          restore-keys: |
+            wasm-${{ github.run_id }}
+            wasm-
+      - name: Build
+        run: |
+          mv cabal.project.ci cabal.project.local
+          nix develop --command bash -c \
+            'wasm32-wasi-cabal update && wasm32-wasi-cabal build'

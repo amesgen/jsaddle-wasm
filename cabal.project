@@ -31,10 +31,3 @@ constraints:
   ghc-prim installed,
   integer-gmp installed,
   template-haskell installed
-
--- temporary
-
-source-repository-package
-  type: git
-  location: https://github.com/TerrorJack/lens.git
-  tag: aff6aea99c15b10cdafc8c4fbf5b0193454a4d24

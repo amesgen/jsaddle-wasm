@@ -9,7 +9,7 @@
     in {
       devShells.default = pkgs.mkShell {
         packages = [
-          inputs.ghc-wasm-meta.packages.${system}.all_gmp
+          inputs.ghc-wasm-meta.packages.${system}.all_9_10
         ];
       };
     });

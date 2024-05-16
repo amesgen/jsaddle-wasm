@@ -15,7 +15,7 @@ Several Miso examples: https://github.com/tweag/ghc-wasm-miso-examples
 
 ## How to use
 
-Install a WASM-enabled GHC with support for the WASM JSFFI from [ghc-wasm-meta][] (GHC 9.10.1-alpha1 or `master`).
+Install a WASM-enabled GHC with support for the WASM JSFFI from [ghc-wasm-meta][] (GHC 9.10 or newer).
 
 Assuming you built your application as an `app :: JSM ()`:
 

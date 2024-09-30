@@ -68,7 +68,11 @@ await instance.exports.hs_start();
     - Optimize existing command-based implementation.
        - Reuse buffers
        - Use a serialization format more efficient than JSON.
-    - Skip JSaddle commands, use WASM JSFFI more directly. Not clear if this is worth the extra complexity.
+    - Implement `ghcjs-dom` API directly via the WASM JS FFI.
+
+      This would involve creating a `ghcjs-dom-wasm` package by adapting the FFI import syntax from `ghcjs-dom-jsffi`/`ghcjs-dom-javascript` appropriately.
+
+      Currently, the generic `ghcjs-dom-jsaddle` seems to work fine, so it seems sensible to wait with this until benchmarks or other concerns motivate this.
 
 ## Related projects
 

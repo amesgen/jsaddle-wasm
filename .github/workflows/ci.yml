@@ -8,12 +8,15 @@ on:
       - opened
       - synchronize
 jobs:
-  ormolu:
+  formatting:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: haskell-actions/run-ormolu@v16
   ci:
+      - uses: tfausak/cabal-gild-setup-action@v2
+        with:
+          version: 1.5.0.1
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

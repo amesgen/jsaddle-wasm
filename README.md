@@ -1,7 +1,7 @@
 # jsaddle-wasm
-[![CI](https://github.com/amesgen/jsaddle-wasm/workflows/ci-wasm/badge.svg)](https://github.com/amesgen/jsaddle-wasm/actions)
-[![Hackage](https://img.shields.io/hackage/v/jsaddle-wasm)](https://hackage.haskell.org/package/jsaddle-wasm
-[![Haddocks](https://img.shields.io/badge/documentation-Haddocks-purple)](https://hackage.haskell.org/package/jsaddle-wasm/docs/Language-Javascript-JSaddle-Wasm.html))
+[![CI](https://github.com/amesgen/jsaddle-wasm/workflows/CI/badge.svg)](https://github.com/amesgen/jsaddle-wasm/actions)
+[![Hackage](https://img.shields.io/hackage/v/jsaddle-wasm)](https://hackage.haskell.org/package/jsaddle-wasm)
+[![Haddocks](https://img.shields.io/badge/documentation-Haddocks-purple)](https://hackage.haskell.org/package/jsaddle-wasm/docs/Language-Javascript-JSaddle-Wasm.html)
 
 Run [JSaddle][] `JSM` actions with the [GHC WASM backend][].
 

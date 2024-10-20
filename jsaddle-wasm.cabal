@@ -30,16 +30,25 @@ common common
 
 library
   import: common
+  hs-source-dirs: src
   exposed-modules:
     Language.Javascript.JSaddle.Wasm
 
-  build-depends:
-    aeson,
-    async,
-    base,
-    bytestring,
-    ghc-experimental,
-    jsaddle,
-    stm,
+  other-modules:
+    Language.Javascript.JSaddle.Wasm.Internal
 
-  hs-source-dirs: src
+  build-depends:
+    base >=4.16 && <5,
+    jsaddle ^>=0.9,
+
+  if arch(wasm32)
+    build-depends:
+      aeson >=2 && <2.3,
+      async ^>=2.2,
+      bytestring >=0.11 && <0.13,
+      ghc-experimental ^>=0.1,
+      stm ^>=2.5,
+
+    hs-source-dirs: src-wasm
+  else
+    hs-source-dirs: src-native

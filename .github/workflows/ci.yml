@@ -13,10 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: haskell-actions/run-ormolu@v16
-  ci:
       - uses: tfausak/cabal-gild-setup-action@v2
         with:
           version: 1.5.0.1
+  ci-wasm:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,3 +34,19 @@ jobs:
           mv cabal.project.ci cabal.project.local
           nix develop --command bash -c \
             'wasm32-wasi-cabal update && wasm32-wasi-cabal build'
+  ci-native:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
+        id: setup-haskell
+        with:
+          ghc-version: '9.10'
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.setup-haskell.outputs.cabal-store }}
+          key: ci-native-${{ github.run_id }}
+          restore-keys: |
+            ci-native-${{ github.run_id }}
+            ci-native-
+      - run: cabal build

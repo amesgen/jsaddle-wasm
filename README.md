@@ -12,9 +12,9 @@ This can for example be used to compile and run [Miso][] or [Reflex][] apps in t
 
 ## Examples
 
-### Miso
+ - Several Miso examples: https://github.com/tweag/ghc-wasm-miso-examples
 
-Several Miso examples: https://github.com/tweag/ghc-wasm-miso-examples
+ - Reflex TodoMVC example: https://github.com/tweag/ghc-wasm-miso-examples/pull/18
 
 ## How to use
 
@@ -108,6 +108,7 @@ An advantage of this approach is that computationally expensive operations in WA
     - Optimize existing command-based implementation.
        - Reuse buffers
        - Use a serialization format more efficient than JSON.
+    - Patch `jsaddle` to not go through commands, by using the WASM JS FFI.
     - Implement `ghcjs-dom` API directly via the WASM JS FFI.
 
       This would involve creating a `ghcjs-dom-wasm` package by adapting the FFI import syntax from `ghcjs-dom-jsffi`/`ghcjs-dom-javascript` appropriately.

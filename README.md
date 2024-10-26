@@ -12,9 +12,9 @@ This can for example be used to compile and run [Miso][] or [Reflex][] apps in t
 
 ## Examples
 
-### Miso
+ - Several Miso examples: https://github.com/tweag/ghc-wasm-miso-examples
 
-Several Miso examples: https://github.com/tweag/ghc-wasm-miso-examples
+ - Reflex TodoMVC example: https://github.com/tweag/ghc-wasm-miso-examples/pull/18
 
 ## How to use
 
@@ -62,15 +62,53 @@ wasi.initialize(instance);
 await instance.exports.hs_start();
 ```
 
+### Separating execution environments
+
+It is also possible to run the WASM worker in a different execution environment (e.g. a web worker) than the JSaddle JavaScript code that dispatches the JSaddle command messages.
+
+An advantage of this approach is that computationally expensive operations in WASM do not block the UI thread. A disadvantage is that there is some overhead for copying the data back and forth, and everything relying on synchronous callbacks (e.g. `stopPropagation`/`preventDefault`) definitely no longer works.
+
+ - Instead of the `run` function above, you need to use `runWorker`:
+
+   ```haskell
+   import Language.Javascript.JSaddle.Wasm qualified as JSaddle.Wasm
+
+   foreign export javascript "hs_runWorker" runWorker :: JSVal -> IO ()
+
+   runWorker :: JSVal -> IO ()
+   runWorker = JSaddle.Wasm.runWorker Ormolu.Live.app
+   ```
+
+   The argument to `runWorker` here can be any message port in the sense of the [Channel Messaging API][]. In particular, it must provide a `postMessage` function and a `message` event.
+
+   For example, in a web worker, you can initialize the WASM module as above, and then run
+   ```javascript
+   await instance.exports.hs_runWorker(globalThis);
+   ```
+   as `globalThis` (or `self`) in a web worker is a message port.
+
+ - Additionally, you need to run the JSaddle command dispatching logic on the other end of the message port.
+
+   The necessary chunk of JavaScript is available as `jsaddleScript` both from `Language.Javascript.JSaddle.Wasm` from the main library, and also from `Language.Javascript.JSaddle.Wasm.JS` from the `js` public sublibrary, where the latter has the advantage to not depend on any JSFFI, so you can build a normal WASI command module or even a native executable while still depending on it.
+
+   It provides a function `runJSaddle` taking a single argument, a message port.
+
+   One way to invoke it is to save `jsaddleScript` to some file, include it via a `script` tag in your HTML file, and then run
+   ```javascript
+   const worker = new Worker("my-worker.js");
+   runJSaddle(worker);
+   ```
+
 ## Potential future work
 
- - Take a closer look at synchronous callbacks (no special handling currently, but basic things like `stopPropagation` already seem to work fine).
+ - Take a closer look at synchronous callbacks. We have no special handling currently, but basic things like `stopPropagation`/`preventDefault` already seem to work fine with `run` (but not with `runWorker`, as expected).
  - Testing (e.g. via Selenium).
  - Add logging/stats.
  - Performance/benchmarking (not clear that this is actually a bottleneck for most applications).
     - Optimize existing command-based implementation.
        - Reuse buffers
        - Use a serialization format more efficient than JSON.
+    - Patch `jsaddle` to not go through commands, by using the WASM JS FFI.
     - Implement `ghcjs-dom` API directly via the WASM JS FFI.
 
       This would involve creating a `ghcjs-dom-wasm` package by adapting the FFI import syntax from `ghcjs-dom-jsffi`/`ghcjs-dom-javascript` appropriately.
@@ -89,3 +127,4 @@ await instance.exports.hs_start();
 [browser_wasi_shim]: https://github.com/bjorn3/browser_wasi_shim
 [ghc-users-guide-js-api]: https://ghc.gitlab.haskell.org/ghc/doc/users_guide/wasm.html#the-javascript-api
 [WebGHC]: https://webghc.github.io
+[Channel Messaging API]: https://developer.mozilla.org/en-US/docs/Web/API/Channel_Messaging_API

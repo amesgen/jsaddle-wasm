@@ -16,6 +16,9 @@ This can for example be used to compile and run [Miso][] or [Reflex][] apps in t
 
  - Reflex TodoMVC example: https://github.com/tweag/ghc-wasm-miso-examples/pull/18
 
+ - Ormolu Live: https://github.com/tweag/ormolu/tree/master/ormolu-live
+   (uses the web worker approach described below)
+
 ## How to use
 
 Install a WASM-enabled GHC with support for the WASM JSFFI from [ghc-wasm-meta][] (GHC 9.10 or newer).

@@ -12,9 +12,9 @@ This can for example be used to compile and run [Miso][] or [Reflex][] apps in t
 
 ## Examples
 
- - Several Miso examples: https://github.com/tweag/ghc-wasm-miso-examples
+ - Miso examples: https://github.com/tweag/ghc-wasm-miso-examples
 
- - Reflex TodoMVC example: https://github.com/tweag/ghc-wasm-miso-examples/pull/18
+ - Reflex examples: https://github.com/tweag/ghc-wasm-reflex-examples
 
  - Ormolu Live: https://github.com/tweag/ormolu/tree/master/ormolu-live
    (uses the web worker approach described below)

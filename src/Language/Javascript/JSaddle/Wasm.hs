@@ -1,7 +1,7 @@
 -- | See the [README](https://github.com/amesgen/jsaddle-wasm) for more details.
 --
 -- While this package also compiles on non-WASM GHCs for convenience, running
--- this function will immediately fail.
+-- any function from this module will immediately fail.
 module Language.Javascript.JSaddle.Wasm
   ( run,
     runWorker,

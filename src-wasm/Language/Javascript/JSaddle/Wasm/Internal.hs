@@ -21,9 +21,9 @@ import Language.Javascript.JSaddle.Run.Files qualified as JSaddle.Files
 import Language.Javascript.JSaddle.Types (Batch, JSM)
 
 -- Note: It is also possible to implement this succinctly on top of 'runWorker'
--- and 'jsaddleScript', but then e.g. @stopPropagation@/@preventDefault@
--- definitely don't work, whereas they work (at least in simple cases) with the
--- implementation below.
+-- and 'jsaddleScript' (using MessageChannel), but then e.g.
+-- @stopPropagation@/@preventDefault@ definitely don't work, whereas they work
+-- (at least in simple cases) with the implementation below.
 run :: JSM () -> IO ()
 run entryPoint = do
   -- TODO rather use a bounded (even size 1) queue?

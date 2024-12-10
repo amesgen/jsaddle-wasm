@@ -3,7 +3,7 @@
 [![Hackage](https://img.shields.io/hackage/v/jsaddle-wasm)](https://hackage.haskell.org/package/jsaddle-wasm)
 [![Haddocks](https://img.shields.io/badge/documentation-Haddocks-purple)](https://hackage.haskell.org/package/jsaddle-wasm/docs/Language-Javascript-JSaddle-Wasm.html)
 
-Run [JSaddle][] `JSM` actions with the [GHC WASM backend][].
+Run [JSaddle][] `JSM` actions with the [GHC Wasm backend][].
 
 This can for example be used to compile and run [Miso][] or [Reflex][] apps in the browser.
 
@@ -21,7 +21,7 @@ This can for example be used to compile and run [Miso][] or [Reflex][] apps in t
 
 ## How to use
 
-Install a WASM-enabled GHC with support for the WASM JSFFI from [ghc-wasm-meta][] (GHC 9.10 or newer).
+Install a Wasm-enabled GHC with support for the Wasm JSFFI from [ghc-wasm-meta][] (GHC 9.10 or newer).
 
 Assuming you built your application as an `app :: JSM ()`:
 
@@ -34,14 +34,14 @@ main :: IO ()
 main = JSaddle.Wasm.run app
 ```
 
-Build the WASM binary with the following GHC options:
+Build the Wasm binary with the following GHC options:
 ```cabal
 ghc-options: -no-hs-main -optl-mexec-model=reactor "-optl-Wl,--export=hs_start"
 ```
 
 Now, run the post-linker script as described in the [GHC User's Guide][ghc-users-guide-js-api]; we will call the resulting JavaScript file `ghc_wasm_jsffi.js`.
 
-Then, following the [GHC User's Guide][ghc-users-guide-js-api], you can run the WASM binary in the browser via e.g. [browser_wasi_shim][]:
+Then, following the [GHC User's Guide][ghc-users-guide-js-api], you can run the Wasm binary in the browser via e.g. [browser_wasi_shim][]:
 ```javascript
 import { WASI, OpenFile, File, ConsoleStdout } from "@bjorn3/browser_wasi_shim";
 import ghc_wasm_jsffi from "./ghc_wasm_jsffi.js";
@@ -67,11 +67,11 @@ await instance.exports.hs_start();
 
 ### Separating execution environments
 
-It is also possible to run the WASM worker in a different execution environment (e.g. a web worker) than the JSaddle JavaScript code that dispatches the JSaddle command messages.
+It is also possible to run the Wasm worker in a different execution environment (e.g. a web worker) than the JSaddle JavaScript code that dispatches the JSaddle command messages.
 
-An advantage of this approach is that computationally expensive operations in WASM do not block the UI thread. A disadvantage is that there is some overhead for copying the data back and forth, and everything relying on synchronous callbacks (e.g. `stopPropagation`/`preventDefault`) definitely no longer works.
+An advantage of this approach is that computationally expensive operations in Wasm do not block the UI thread. A disadvantage is that there is some overhead for copying the data back and forth, and everything relying on synchronous callbacks (e.g. `stopPropagation`/`preventDefault`) definitely no longer works.
 
- - Instead of the `run` function above, you need to use `runWorker`:
+ - Instead of the `run` function above, you need to use `runWorker` (again assuming `app :: JSM ()`):
 
    ```haskell
    import Language.Javascript.JSaddle.Wasm qualified as JSaddle.Wasm
@@ -79,12 +79,12 @@ An advantage of this approach is that computationally expensive operations in WA
    foreign export javascript "hs_runWorker" runWorker :: JSVal -> IO ()
 
    runWorker :: JSVal -> IO ()
-   runWorker = JSaddle.Wasm.runWorker Ormolu.Live.app
+   runWorker = JSaddle.Wasm.runWorker app
    ```
 
    The argument to `runWorker` here can be any message port in the sense of the [Channel Messaging API][]. In particular, it must provide a `postMessage` function and a `message` event.
 
-   For example, in a web worker, you can initialize the WASM module as above, and then run
+   For example, in a web worker, you can initialize the Wasm module as above, and then run
    ```javascript
    await instance.exports.hs_runWorker(globalThis);
    ```
@@ -111,8 +111,8 @@ An advantage of this approach is that computationally expensive operations in WA
     - Optimize existing command-based implementation.
        - Reuse buffers
        - Use a serialization format more efficient than JSON.
-    - Patch `jsaddle` to not go through commands, by using the WASM JS FFI.
-    - Implement `ghcjs-dom` API directly via the WASM JS FFI.
+    - Patch `jsaddle` to not go through commands, by using the Wasm JS FFI.
+    - Implement `ghcjs-dom` API directly via the Wasm JS FFI.
 
       This would involve creating a `ghcjs-dom-wasm` package by adapting the FFI import syntax from `ghcjs-dom-jsffi`/`ghcjs-dom-javascript` appropriately.
 
@@ -120,13 +120,13 @@ An advantage of this approach is that computationally expensive operations in WA
 
 ## Related projects
 
- - [WebGHC/jsaddle-wasm](https://github.com/WebGHC/jsaddle-wasm) for the analogue for [WebGHC][] instead of the [GHC WASM backend][].
+ - [WebGHC/jsaddle-wasm](https://github.com/WebGHC/jsaddle-wasm) for the analogue for [WebGHC][] instead of the [GHC Wasm backend][].
 
 [JSaddle]: https://github.com/ghcjs/jsaddle
-[GHC WASM backend]: https://www.tweag.io/blog/2022-11-22-wasm-backend-merged-in-ghc
+[GHC Wasm backend]: https://www.tweag.io/blog/2022-11-22-wasm-backend-merged-in-ghc
 [Miso]: https://github.com/dmjio/miso
 [Reflex]: https://github.com/reflex-frp/reflex
-[ghc-wasm-meta]: https://gitlab.haskell.org/ghc/ghc-wasm-meta
+[ghc-wasm-meta]: https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta
 [browser_wasi_shim]: https://github.com/bjorn3/browser_wasi_shim
 [ghc-users-guide-js-api]: https://ghc.gitlab.haskell.org/ghc/doc/users_guide/wasm.html#the-javascript-api
 [WebGHC]: https://webghc.github.io

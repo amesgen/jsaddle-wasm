@@ -1,7 +1,7 @@
 -- | See the [README](https://github.com/amesgen/jsaddle-wasm) for more details.
 --
--- While this package also compiles on non-WASM GHCs for convenience, running
--- any function from this module will immediately fail.
+-- While this package also compiles on non-Wasm GHCs for convenience, running
+-- any function from this module will immediately fail in that case.
 module Language.Javascript.JSaddle.Wasm
   ( run,
     runWorker,
@@ -17,7 +17,7 @@ import Language.Javascript.JSaddle.Wasm.Internal (JSVal)
 import Language.Javascript.JSaddle.Wasm.Internal qualified as Internal
 import Language.Javascript.JSaddle.Wasm.JS (jsaddleScript)
 
--- | Run a 'JSM' action via the WASM JavaScript FFI.
+-- | Run a 'JSM' action via the Wasm JavaScript FFI.
 run :: JSM () -> IO ()
 run = Internal.run
 

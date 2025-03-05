@@ -22,8 +22,8 @@ import Language.Javascript.JSaddle.Types (Batch, JSM)
 
 -- Note: It is also possible to implement this succinctly on top of 'runWorker'
 -- and 'jsaddleScript' (using MessageChannel), but then e.g.
--- @stopPropagation@/@preventDefault@ definitely don't work, whereas they work
--- (at least in simple cases) with the implementation below.
+-- @stopPropagation@/@preventDefault@ don't work, whereas the implementation
+-- below has special support via @processResultSync@.
 run :: JSM () -> IO ()
 run entryPoint = do
   -- TODO rather use a bounded (even size 1) queue?
@@ -35,8 +35,8 @@ run entryPoint = do
   readBatchCallback <-
     mkPushCallback $ atomically $ readTQueue outgoingMsgQueue
 
-  let jsaddleRunner :: JSVal -> IO ()
-      jsaddleRunner processResultCallback = do
+  let jsaddleRunner :: JSVal -> JSVal -> IO ()
+      jsaddleRunner processResultCallback processResultSyncCallback = do
         s <-
           byteStringToJSString . BLC8.toStrict . BLC8.unlines $
             [ JSaddle.Files.ghcjsHelpers,
@@ -46,14 +46,11 @@ run entryPoint = do
               "    const batch = JSON.parse(await readBatch());",
               JSaddle.Files.runBatch
                 (\r -> "processResult(JSON.stringify(" <> r <> "));")
-                -- TODO Think more about how synchronous dispatching works here
-                -- (see processSyncResult). For some reason, it already /seems/
-                -- to work fine, at least in simple cases.
-                Nothing,
+                (Just \r -> "JSON.parse(processResultSync(JSON.stringify(" <> r <> ")))"),
               "  }",
               "})();"
             ]
-        evaluate =<< js_eval s processResultCallback readBatchCallback
+        evaluate =<< js_eval s processResultCallback processResultSyncCallback readBatchCallback
 
   runHelper entryPoint sendOutgoingMessage jsaddleRunner
 
@@ -62,27 +59,38 @@ runWorker entryPoint worker =
   runHelper
     entryPoint
     (evaluate <=< js_postMessage worker)
-    (evaluate <=< js_onMessage worker)
+    (\processResult _processResultSync -> evaluate =<< js_onMessage worker processResult)
 
 runHelper ::
   JSM () ->
   -- | How to send an outgoing message.
   (JSString -> IO ()) ->
-  -- | Start receiving incoming messages. For every message, invoke the given
-  -- 'JSVal' callback.
-  (JSVal -> IO ()) ->
+  -- | Start receiving incoming messages. For every message, invoke one of the
+  -- two given 'JSVal' callbacks (for sync/async processing, respectively).
+  (JSVal -> JSVal -> IO ()) ->
   IO ()
 runHelper entryPoint sendOutgoingMessage onIncomingMessage = do
-  (processResult, _processSyncResult, start) <-
+  (processResult, processSyncResult, start) <-
     runJavaScript sendBatch entryPoint
 
-  processResultCallback <- mkPullCallback \s -> do
-    bs <- jsStringToByteString s
-    case A.eitherDecodeStrict bs of
-      Left e -> fail $ "jsaddle: received invalid JSON: " <> show e
-      Right r -> processResult r
+  let receiveBatch :: JSString -> IO ()
+      receiveBatch s = do
+        bs <- jsStringToByteString s
+        case A.eitherDecodeStrict bs of
+          Left e -> fail $ "jsaddle: received invalid JSON: " <> show e
+          Right r -> processResult r
 
-  onIncomingMessage processResultCallback
+      processBatchSync :: JSString -> IO JSString
+      processBatchSync s = do
+        bs <- jsStringToByteString s
+        case A.eitherDecodeStrict bs of
+          Left e -> fail $ "jsaddle: received invalid JSON: " <> show e
+          Right r -> byteStringToJSString . BLC8.toStrict . A.encode =<< processSyncResult r
+
+  processResultCallback <- mkPullCallback receiveBatch
+  processResultSyncCallback <- mkSyncCallback processBatchSync
+
+  onIncomingMessage processResultCallback processResultSyncCallback
 
   start
   where
@@ -95,10 +103,12 @@ runHelper entryPoint sendOutgoingMessage onIncomingMessage = do
 
 foreign import javascript "wrapper" mkPullCallback :: (JSString -> IO ()) -> IO JSVal
 
+foreign import javascript "wrapper sync" mkSyncCallback :: (JSString -> IO JSString) -> IO JSVal
+
 foreign import javascript "wrapper" mkPushCallback :: IO JSString -> IO JSVal
 
-foreign import javascript safe "new Function('processResult','readBatch',`(()=>{${$1}})()`)($2, $3)"
-  js_eval :: JSString -> JSVal -> JSVal -> IO ()
+foreign import javascript safe "new Function('processResult','processResultSync','readBatch',`(()=>{${$1}})()`)($2, $3, $4)"
+  js_eval :: JSString -> JSVal -> JSVal -> JSVal -> IO ()
 
 -- Worker
 

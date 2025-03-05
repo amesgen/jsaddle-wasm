@@ -21,7 +21,8 @@ This can for example be used to compile and run [Miso][] or [Reflex][] apps in t
 
 ## How to use
 
-Install a Wasm-enabled GHC with support for the Wasm JSFFI from [ghc-wasm-meta][] (GHC 9.10 or newer).
+Install a Wasm-enabled GHC with support for the Wasm JSFFI (including [synchronous JSFFI exports][sync-jsffi-exports][^missing-sync-jsffi]) from [ghc-wasm-meta][] (GHC 9.10 or newer).
+
 
 Assuming you built your application as an `app :: JSM ()`:
 
@@ -104,7 +105,6 @@ An advantage of this approach is that computationally expensive operations in Wa
 
 ## Potential future work
 
- - Take a closer look at synchronous callbacks. We have no special handling currently, but basic things like `stopPropagation`/`preventDefault` already seem to work fine with `run` (but not with `runWorker`, as expected).
  - Testing (e.g. via Selenium).
  - Add logging/stats.
  - Performance/benchmarking (not clear that this is actually a bottleneck for most applications).
@@ -122,6 +122,8 @@ An advantage of this approach is that computationally expensive operations in Wa
 
  - [WebGHC/jsaddle-wasm](https://github.com/WebGHC/jsaddle-wasm) for the analogue for [WebGHC][] instead of the [GHC Wasm backend][].
 
+[^missing-sync-jsffi]: Otherwise, you will see errors involving `unknown type name 'HsFUN'`.
+
 [JSaddle]: https://github.com/ghcjs/jsaddle
 [GHC Wasm backend]: https://www.tweag.io/blog/2022-11-22-wasm-backend-merged-in-ghc
 [Miso]: https://github.com/dmjio/miso
@@ -131,3 +133,4 @@ An advantage of this approach is that computationally expensive operations in Wa
 [ghc-users-guide-js-api]: https://ghc.gitlab.haskell.org/ghc/doc/users_guide/wasm.html#the-javascript-api
 [WebGHC]: https://webghc.github.io
 [Channel Messaging API]: https://developer.mozilla.org/en-US/docs/Web/API/Channel_Messaging_API
+[sync-jsffi-exports]: https://gitlab.haskell.org/ghc/ghc/-/merge_requests/13994

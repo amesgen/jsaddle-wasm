@@ -25,27 +25,28 @@
       },
       "locked": {
         "host": "gitlab.haskell.org",
-        "lastModified": 1734354225,
-        "narHash": "sha256-c7uY4XcZNO0krdOXtaoE/ZW7w38BjC3o9pQjrwfQrO8=",
+        "lastModified": 1741026084,
+        "narHash": "sha256-tQkWC8bJ6FCV9T/bWFj51Zr9wpa/hsROIe2oEqJ6F4Y=",
         "owner": "haskell-wasm",
         "repo": "ghc-wasm-meta",
-        "rev": "f0faac335c6f5e967d1bdbfca5768232483fd2a8",
+        "rev": "7d1c235a0bb90924f08b57aadb07d3cf78ce6a4d",
         "type": "gitlab"
       },
       "original": {
         "host": "gitlab.haskell.org",
         "owner": "haskell-wasm",
+        "ref": "wip/wasm-jsffi-sync-export",
         "repo": "ghc-wasm-meta",
         "type": "gitlab"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1734119587,
-        "narHash": "sha256-AKU6qqskl0yf2+JdRdD0cfxX4b9x3KKV5RqA6wijmPM=",
+        "lastModified": 1739580444,
+        "narHash": "sha256-+/bSz4EAVbqz8/HsIGLroF8aNaO8bLRL7WfACN+24g4=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "3566ab7246670a43abd2ffa913cc62dad9cdf7d5",
+        "rev": "8bb37161a0488b89830168b81c48aed11569cb93",
         "type": "github"
       },
       "original": {

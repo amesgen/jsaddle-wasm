@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ghc: ['9_10', '9_12']
+        ghc: ['9_12']
     steps:
       - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v30
@@ -46,7 +46,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ghc: ['9.10', '9.12']
+        ghc: ['9.12']
     steps:
       - uses: actions/checkout@v4
       - uses: haskell-actions/setup@v2

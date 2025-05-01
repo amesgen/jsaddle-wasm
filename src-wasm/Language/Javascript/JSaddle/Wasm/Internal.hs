@@ -7,7 +7,7 @@ where
 
 import Control.Concurrent.STM
 import Control.Exception (evaluate)
-import Control.Monad ((<=<))
+import Control.Monad ((<=<), (>=>))
 import Data.Aeson qualified as A
 import Data.ByteString (ByteString)
 import Data.ByteString.Internal qualified as BI
@@ -18,7 +18,7 @@ import GHC.Wasm.Prim (JSString, JSVal)
 import GHC.Wasm.Prim qualified
 import Language.Javascript.JSaddle.Run (runJavaScript)
 import Language.Javascript.JSaddle.Run.Files qualified as JSaddle.Files
-import Language.Javascript.JSaddle.Types (Batch, JSM)
+import Language.Javascript.JSaddle.Types (Batch, JSM, Results)
 
 -- Note: It is also possible to implement this succinctly on top of 'runWorker'
 -- and 'jsaddleScript' (using MessageChannel), but then e.g.
@@ -81,18 +81,10 @@ runHelper entryPoint sendOutgoingMessage onIncomingMessage = do
     runJavaScript sendBatch entryPoint
 
   let receiveBatch :: JSString -> IO ()
-      receiveBatch s = do
-        bs <- jsStringToByteString s
-        case A.eitherDecodeStrict bs of
-          Left e -> fail $ "jsaddle: received invalid JSON: " <> show e
-          Right r -> processResult r
+      receiveBatch = decodeResults >=> processResult
 
       processBatchSync :: JSString -> IO JSString
-      processBatchSync s = do
-        bs <- jsStringToByteString s
-        case A.eitherDecodeStrict bs of
-          Left e -> fail $ "jsaddle: received invalid JSON: " <> show e
-          Right r -> byteStringToJSString . BLC8.toStrict . A.encode =<< processSyncResult r
+      processBatchSync = decodeResults >=> processSyncResult >=> encodeBatch
 
   processResultCallback <- mkPullCallback receiveBatch
   processResultSyncCallback <- mkSyncCallback processBatchSync
@@ -102,9 +94,17 @@ runHelper entryPoint sendOutgoingMessage onIncomingMessage = do
   start
   where
     sendBatch :: Batch -> IO ()
-    sendBatch batch = do
-      encodedBatch <- byteStringToJSString $ BLC8.toStrict $ A.encode batch
-      sendOutgoingMessage encodedBatch
+    sendBatch = encodeBatch >=> sendOutgoingMessage
+
+    encodeBatch :: Batch -> IO JSString
+    encodeBatch = byteStringToJSString . BLC8.toStrict . A.encode
+
+    decodeResults :: JSString -> IO Results
+    decodeResults s = do
+      bs <- jsStringToByteString s
+      case A.eitherDecodeStrict bs of
+        Left e -> fail $ "jsaddle: received invalid JSON: " <> show e
+        Right r -> pure r
 
 -- Utilities:
 

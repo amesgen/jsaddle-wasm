@@ -39,8 +39,7 @@ run entryPoint = do
       jsaddleRunner processResultCallback processResultSyncCallback = do
         s <-
           byteStringToJSString . BLC8.toStrict . BLC8.unlines $
-            [ JSaddle.Files.ghcjsHelpers,
-              JSaddle.Files.initState,
+            [ JSaddle.Files.initState,
               "(async () => {",
               "  while (true) {",
               "    const batch = JSON.parse(await readBatch());",
@@ -50,7 +49,15 @@ run entryPoint = do
               "  }",
               "})();"
             ]
-        evaluate =<< js_eval s processResultCallback processResultSyncCallback readBatchCallback
+        evaluate
+          =<< js_eval_jsaddle
+            s
+            processResultCallback
+            processResultSyncCallback
+            readBatchCallback
+
+  -- The GHCJS helpers need to be available in the global scope.
+  js_global_eval =<< byteStringToJSString (BLC8.toStrict JSaddle.Files.ghcjsHelpers)
 
   runHelper entryPoint sendOutgoingMessage jsaddleRunner
 
@@ -107,8 +114,10 @@ foreign import javascript "wrapper sync" mkSyncCallback :: (JSString -> IO JSStr
 
 foreign import javascript "wrapper" mkPushCallback :: IO JSString -> IO JSVal
 
+foreign import javascript unsafe "eval.call(globalThis, $1)" js_global_eval :: JSString -> IO ()
+
 foreign import javascript safe "new Function('processResult','processResultSync','readBatch',`(()=>{${$1}})()`)($2, $3, $4)"
-  js_eval :: JSString -> JSVal -> JSVal -> JSVal -> IO ()
+  js_eval_jsaddle :: JSString -> JSVal -> JSVal -> JSVal -> IO ()
 
 -- Worker
 

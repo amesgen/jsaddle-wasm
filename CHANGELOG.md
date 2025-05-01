@@ -1,5 +1,15 @@
 # Revision history for jsaddle-wasm
 
+## 0.1.1.0 -- 2025-05-01
+
+ * Bug fix: make GHCJS helpers globally available.
+
+   This bug manifested itself in error messages like
+   ```
+   TypeError: jsaddle_values.get(...) is undefined
+   ```
+   when calling certain JSaddle functions like `jsTypeOf` or `createFromArrayBuffer`.
+
 ## 0.1.0.0 -- 2025-03-06
 
  * Add support for synchronous callbacks (when using `run`, but not `runWorker`) using the new synchronous Wasm JSFFI exports feature.

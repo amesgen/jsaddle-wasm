@@ -1,13 +1,2 @@
 packages: .
-
 tests: True
-
-if arch(wasm32)
-  -- https://github.com/haskellari/splitmix/pull/73
-  source-repository-package
-    type: git
-    location: https://github.com/amesgen/splitmix
-    tag: cea9e31bdd849eb0c17611bb99e33d590e126164
-
-if impl(ghc >=9.12)
-  allow-newer: base, ghc-prim, template-haskell

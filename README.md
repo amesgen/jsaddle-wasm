@@ -103,6 +103,12 @@ An advantage of this approach is that computationally expensive operations in Wa
    runJSaddle(worker);
    ```
 
+Additionally, when other packages use the `Language.Javascript.JSaddle.Wasm.TH` module, you need to disable the `eval-via-jsffi` flag, e.g. by adding the following to your `cabal.project`:
+```cabal
+package jsaddle-wasm
+  flags: -eval-via-jsffi
+```
+
 ## Potential future work
 
  - Testing (e.g. via Selenium).

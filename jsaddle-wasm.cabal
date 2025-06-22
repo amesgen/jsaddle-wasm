@@ -26,7 +26,9 @@ common common
   default-language: GHC2021
   default-extensions:
     BlockArguments
+    LambdaCase
     OverloadedStrings
+    TemplateHaskellQuotes
 
 library js
   import: common
@@ -45,20 +47,24 @@ library
   hs-source-dirs: src
   exposed-modules:
     Language.Javascript.JSaddle.Wasm
+    Language.Javascript.JSaddle.Wasm.TH
 
   other-modules:
     Language.Javascript.JSaddle.Wasm.Internal
+    Language.Javascript.JSaddle.Wasm.Internal.TH
 
   build-depends:
     base >=4.16 && <5,
     jsaddle ^>=0.9,
     jsaddle-wasm:js,
+    template-haskell >=2.20 && <2.24,
 
   if arch(wasm32)
     build-depends:
       aeson >=2 && <2.3,
       bytestring >=0.11 && <0.13,
       ghc-experimental ^>=0.1 || >=9.1000 && <9.1300,
+      parser-regex ^>=0.3,
       stm ^>=2.5,
 
     hs-source-dirs: src-wasm

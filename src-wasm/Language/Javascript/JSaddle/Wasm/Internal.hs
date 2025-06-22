@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Language.Javascript.JSaddle.Wasm.Internal
   ( run,
     runWorker,
@@ -19,6 +21,7 @@ import GHC.Wasm.Prim qualified
 import Language.Javascript.JSaddle.Run (runJavaScript)
 import Language.Javascript.JSaddle.Run.Files qualified as JSaddle.Files
 import Language.Javascript.JSaddle.Types (Batch, JSM, Results)
+import Language.Javascript.JSaddle.Wasm.Internal.TH qualified as JSaddle.Wasm.TH
 
 -- Note: It is also possible to implement this succinctly on top of 'runWorker'
 -- and 'jsaddleScript' (using MessageChannel), but then e.g.
@@ -37,27 +40,31 @@ run entryPoint = do
 
   let jsaddleRunner :: JSVal -> JSVal -> IO ()
       jsaddleRunner processResultCallback processResultSyncCallback = do
-        s <-
-          byteStringToJSString . BLC8.toStrict . BLC8.unlines $
-            [ JSaddle.Files.initState,
-              "(async () => {",
-              "  while (true) {",
-              "    const batch = JSON.parse(await readBatch());",
-              JSaddle.Files.runBatch
-                (\r -> "processResult(JSON.stringify(" <> r <> "));")
-                (Just \r -> "JSON.parse(processResultSync(JSON.stringify(" <> r <> ")))"),
-              "  }",
-              "})();"
-            ]
+        let eval :: JSVal -> JSVal -> JSVal -> IO ()
+            eval =
+              $( do
+                   let s =
+                         BLC8.unlines $
+                           [ JSaddle.Files.initState,
+                             "var syncDepth = 0;",
+                             "(async () => {",
+                             "  while (true) {",
+                             "    const batch = JSON.parse(await $3());",
+                             JSaddle.Files.runBatch
+                               (\r -> "$1(JSON.stringify(" <> r <> "));")
+                               (Just \r -> "JSON.parse($2(JSON.stringify(" <> r <> ")))"),
+                             "  }",
+                             "})();"
+                           ]
+                   JSaddle.Wasm.TH.eval (BLC8.unpack s) (replicate 3 [t|JSVal|])
+               )
         evaluate
-          =<< js_eval_jsaddle
-            s
+          =<< eval
             processResultCallback
             processResultSyncCallback
             readBatchCallback
 
-  -- The GHCJS helpers need to be available in the global scope.
-  js_global_eval =<< byteStringToJSString (BLC8.toStrict JSaddle.Files.ghcjsHelpers)
+  $(JSaddle.Wasm.TH.eval JSaddle.Wasm.TH.patchedGhcjsHelpers [])
 
   runHelper entryPoint sendOutgoingMessage jsaddleRunner
 
@@ -113,11 +120,6 @@ foreign import javascript "wrapper" mkPullCallback :: (JSString -> IO ()) -> IO 
 foreign import javascript "wrapper sync" mkSyncCallback :: (JSString -> IO JSString) -> IO JSVal
 
 foreign import javascript "wrapper" mkPushCallback :: IO JSString -> IO JSVal
-
-foreign import javascript unsafe "eval.call(globalThis, $1)" js_global_eval :: JSString -> IO ()
-
-foreign import javascript safe "new Function('processResult','processResultSync','readBatch',`(()=>{${$1}})()`)($2, $3, $4)"
-  js_eval_jsaddle :: JSString -> JSVal -> JSVal -> JSVal -> IO ()
 
 -- Worker
 

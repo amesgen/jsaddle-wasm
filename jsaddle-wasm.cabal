@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: jsaddle-wasm
-version: 0.1.1.0
+version: 0.1.2.0
 synopsis: Run JSaddle JSM with the GHC Wasm backend
 description: Run JSaddle @JSM@ with the GHC Wasm backend.
 category: Web, Javascript

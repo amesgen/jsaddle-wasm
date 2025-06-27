@@ -1,5 +1,13 @@
 # Revision history for jsaddle-wasm
 
+## 0.1.2.0 -- 2025-06-27
+
+ * Internally, stop using JS `eval`. This allows usage with a `Content-Security-Policy` without `unsafe-eval` (but still with `wasm-unsafe-eval`).
+
+   For the same reason, expose `eval` and `evalFile` from `Language.Javascript.JSaddle.Wasm.TH` which allow to generate corresponding Wasm JSFFI imports for statically known strings.
+
+   Useful as a replacement of JSaddle's `eval` in downstream libraries
+
 ## 0.1.1.0 -- 2025-05-01
 
  * Bug fix: make GHCJS helpers globally available.

@@ -28,6 +28,7 @@ flag eval-via-jsffi
 common common
   ghc-options:
     -Wall
+    -Wimplicit-lift
     -Wunused-packages
     -Wredundant-constraints
 

@@ -58,11 +58,10 @@ run entryPoint = do
                            ]
                    JSaddle.Wasm.TH.eval (BLC8.unpack s) (replicate 3 [t|JSVal|])
                )
-        evaluate
-          =<< eval
-            processResultCallback
-            processResultSyncCallback
-            readBatchCallback
+        eval
+          processResultCallback
+          processResultSyncCallback
+          readBatchCallback
 
   $(JSaddle.Wasm.TH.eval JSaddle.Wasm.TH.patchedGhcjsHelpers [])
 

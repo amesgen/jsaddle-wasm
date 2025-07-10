@@ -2,11 +2,7 @@
 
 ## 0.1.2.1 -- 2025-07-10
 
- * Internally, stop using JS `eval`. This allows usage with a `Content-Security-Policy` without `unsafe-eval` (but still with `wasm-unsafe-eval`).
-
-   For the same reason, expose `eval` and `evalFile` from `Language.Javascript.JSaddle.Wasm.TH` which allow to generate corresponding Wasm JSFFI imports for statically known strings.
-
-   Useful as a replacement of JSaddle's `eval` in downstream libraries
+ * `Language.Javascript.JSaddle.Wasm.TH`: Make sure that the underlying FFI call has been fully completed.
 
 ## 0.1.2.0 -- 2025-06-27
 

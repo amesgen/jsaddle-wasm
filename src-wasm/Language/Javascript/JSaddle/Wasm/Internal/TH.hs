@@ -5,6 +5,7 @@ module Language.Javascript.JSaddle.Wasm.Internal.TH
 where
 
 import Control.Applicative (asum, many)
+import Control.Exception (evaluate)
 import Data.ByteString.Lazy.Char8 qualified as BLC8
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Syntax qualified as TH
@@ -24,7 +25,14 @@ eval jsChunk argTys = do
             ffiImportName
             sig
   TH.addTopDecls [ffiImport]
-  TH.varE ffiImportName
+
+  argNames <- traverse (\_ -> TH.newName "x") argTys
+  let argPats = TH.varP <$> argNames
+      argExps = TH.varE <$> argNames
+  -- Safe FFI imports return a thunk that needs to be evaluated to make sure
+  -- that the FFI call actually completed ('unsafeInterleaveIO'-like). To avoid
+  -- surprises, use this unconditionally.
+  TH.lamE argPats [|evaluate =<< $(TH.appsE $ TH.varE ffiImportName : argExps)|]
   where
     mkSig = \case
       [] -> [t|IO ()|]

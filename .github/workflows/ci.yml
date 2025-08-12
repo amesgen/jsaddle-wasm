@@ -11,7 +11,7 @@ jobs:
   formatting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: haskell-actions/run-ormolu@v17
       - uses: tfausak/cabal-gild-setup-action@v2
         with:
@@ -23,7 +23,7 @@ jobs:
       matrix:
         ghc: ['9_10', '9_12']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: cachix/install-nix-action@v31
       - uses: actions/cache@v4
         with:
@@ -48,7 +48,7 @@ jobs:
       matrix:
         ghc: ['9.10', '9.12']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: haskell-actions/setup@v2
         id: setup-haskell
         with:

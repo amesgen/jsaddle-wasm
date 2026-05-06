@@ -47,6 +47,7 @@ run entryPoint = do
                          BLC8.unlines $
                            [ JSaddle.Files.initState,
                              "var syncDepth = 0;",
+                             "var initialSyncDepth = 0;",
                              "(async () => {",
                              "  while (true) {",
                              "    const batch = JSON.parse(await $3());",
